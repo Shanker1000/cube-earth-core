@@ -185,5 +185,26 @@
       "2026-05-12": "Pod fill",
       "2026-07-01": "Harvest"
     }
+  },
+  "update_6_june_4_2026": {
+    "maize": "All crops sown by June 4. Emergence beginning.",
+    "potatoes": "Most maincrops emerged. Late crops NW Ireland not yet emerged.",
+    "spring_barley": {
+      "status": "Highly variable due to rainfall",
+      "rainfall_april_may": {
+        "Dublin Airport": "47mm \u2014 drought stress",
+        "Oak Park Carlow": "62mm \u2014 moderate",
+        "Johnstown Castle Wexford": "105mm \u2014 adequate",
+        "Cork Airport": "185mm \u2014 good growth"
+      },
+      "note": "Regional variation critical for model generalisation"
+    },
+    "winter_wheat": "At flowering June 4. Peak NDVI/SAR signal.",
+    "spring_beans": "At or near flowering. Chocolate spot risk.",
+    "pipeline_implications": {
+      "maize_sar": "Bare soil April, emergence June \u2014 strong discriminative signal",
+      "spring_barley_ndwi": "NDWI will differ by region due to rainfall variation",
+      "winter_wheat_peak": "Peak SAR/NDVI signal in June dekads"
+    }
   }
 }
