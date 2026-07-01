@@ -1,36 +1,35 @@
 """
-auth.py — CDSE OAuth2 with thread-safe shared token
-Single token shared across all threads — no concurrent refresh race
+auth.py — CDSE OAuth2 with single shared token
+One token for all threads — refreshed only when expired
 """
-import os
-import threading
-import requests
+import os, time, threading, requests
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
 
 TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
 
-_token = None
-_token_lock = threading.Lock()
-_session = None
+_session   = None
+_token_exp = 0
+_lock      = threading.Lock()
 
 def get_session():
-    global _token, _session
-    with _token_lock:
-        client_id     = os.environ.get('CDSE_CLIENT_ID', '')
-        client_secret = os.environ.get('CDSE_CLIENT_SECRET', '')
+    global _session, _token_exp
 
-        if not client_id or not client_secret:
-            raise ValueError("CDSE_CLIENT_ID and CDSE_CLIENT_SECRET must be set")
+    with _lock:
+        now = time.time()
+        # Only refresh if no session or token expires in <60s
+        if _session is None or now > _token_exp - 60:
+            client_id     = os.environ['CDSE_CLIENT_ID']
+            client_secret = os.environ['CDSE_CLIENT_SECRET']
+            client        = BackendApplicationClient(client_id=client_id)
+            session       = OAuth2Session(client=client)
+            token         = session.fetch_token(
+                token_url=TOKEN_URL,
+                client_secret=client_secret,
+                include_client_id=True
+            )
+            _session   = session
+            _token_exp = now + token.get('expires_in', 1800)
+            print(f"Token refreshed ✅ expires in {token.get('expires_in',1800)//60} min")
 
-        client  = BackendApplicationClient(client_id=client_id)
-        session = OAuth2Session(client=client)
-        token   = session.fetch_token(
-            token_url=TOKEN_URL,
-            client_secret=client_secret,
-            include_client_id=True
-        )
-        _token   = token
-        _session = session
-        print("Token refreshed ✅ expires in 30 min")
-        return session
+        return _session
